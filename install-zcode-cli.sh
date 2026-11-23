@@ -185,13 +185,14 @@ chmod +x "$BIN_DIR/zcode"
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
   *)
+    warn "PATH 中没有 ${BIN_DIR}，终端可能找不到 zcode 命令"
+    echo "  可将下面这行自行加入 shell 配置（推荐）：" >&2
+    echo "    export PATH=\"${BIN_DIR}:\$PATH\"" >&2
     RC_FILE="$HOME/.zshrc"
     [ -n "${BASH_VERSION:-}" ] && RC_FILE="$HOME/.bashrc"
-    if confirm "PATH 中没有 ${BIN_DIR}，是否写入 ${RC_FILE}（一行，带标记可回溯）？" y; then
+    if confirm "或由脚本自动写入 ${RC_FILE}（一行，带标记可回溯）？" n; then
       printf '\nexport PATH="%s:$PATH"  # added by install-zcode-cli\n' "$BIN_DIR" >>"$RC_FILE"
       warn "已写入，新开终端生效"
-    else
-      warn "未修改 PATH，请自行将 ${BIN_DIR} 加入 PATH"
     fi
     ;;
 esac
