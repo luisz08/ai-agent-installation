@@ -4,9 +4,21 @@ AI 编程工具的一键安装脚本集合。所有脚本无交互、可重复�
 
 ## install-zcode-cli.sh
 
-从 [zai-org/ZCode](https://github.com/zai-org/ZCode) 官方源码构建 ZCode CLI/TUI（官方不提供独立 CLI 发行包，桌面应用内也不含 TUI 运行时），并安装 `zcode` 启动器。
+从 [zai-org/ZCode](https://github.com/zai-org/ZCode) 官方源码构建 ZCode CLI/TUI 的 **SEA 单文件版**，安装为 `~/.local/bin/zcode`。
 
-自动处理：Node 24.14.0（复用 nvm/系统的，否则下载独立副本不污染系统）、pnpm、源码 clone（--depth 1）、依赖安装（自动跳过 Electron/浏览器下载，容忍桌面版编译失败）、构建 + 启动器安装到 `~/.local/bin`。
+官方不提供独立 CLI 发行包，桌面应用内也不含 TUI 运行时 —— 本脚本是获得终端 TUI 的唯一途径。
+
+### 架构
+
+```
+临时目录 clone 源码 → 构建 → 产出单文件可执行（内嵌 Node/TUI/插件/Playwright，约 250MB）
+        → 安装到 ~/.local/bin/zcode → 自动删除临时目录
+```
+
+- **不留源码、不写死项目目录**：源码随临时目录用完即弃
+- **运行时零依赖**：Node 已内嵌，目标机器不需要装任何运行时
+- 仅构建期需要 Node 24/pnpm（自动准备：优先复用 nvm/系统已有，否则下载到缓存目录 `~/.cache/zcode-installer/`，可随时删）
+- 仅需 `git` + `curl` + `tar`；macOS（Intel/Apple Silicon）与 Linux（x64/arm64）均支持
 
 ### 安装（新机器上执行）
 
@@ -30,7 +42,9 @@ zcode login bigmodel     # 首次登录（zai / bigmodel，与桌面版共用账
 
 ### 说明
 
-- 登录凭证、套餐额度与 ZCode 桌面版完全共享（`~/.zcode/v2/credentials.json`），Coding Plan 的优惠活动同样生效。
+- 登录凭证（`~/.zcode/v2/credentials.json`）、套餐额度、优惠活动与 ZCode 桌面版完全共享 —— 构建自未改动的官方源码，客户端身份一致。
 - TUI 中打开会话前建议退出 ZCode 桌面应用（共用 `~/.zcode/cli/db`，同时运行会锁库）。
-- 可用环境变量覆盖默认值：`ZCODE_REPO`、`ZCODE_INSTALL_DIR`（默认 `~/source/repos/ZCode`）、`ZCODE_BIN_DIR`、`ZCODE_NODE_VERSION`、`ZCODE_PNPM_VERSION`、`ZCODE_NODE_MIRROR`（默认 npmmirror，置空走官方源）。
-- 仅依赖 `git` + `curl` + `tar`；Linux（x64/arm64）与 macOS（Intel/Apple Silicon）均支持。
+- 构建失败常见原因排查：
+  - 桌面版组件（electron/node-pty/Xcode 许可）编译失败 → 正常，脚本会自动忽略，CLI 不受影响
+  - 依赖安装末尾报错但构建继续 → 同上
+- 可用环境变量：`ZCODE_REPO`、`ZCODE_BIN_DIR`、`ZCODE_NODE_VERSION`、`ZCODE_PNPM_VERSION`、`ZCODE_NODE_MIRROR`（默认 npmmirror，置空走官方源）、`ZCODE_TARGET`（一般无需指定）。
